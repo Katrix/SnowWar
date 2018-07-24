@@ -22,7 +22,6 @@ object Perms {
   val RemoveTeamCommand  = s"$TeamCommand.remove"
 
   val ArenaCommand            = s"$ModCommand.arena"
-  val ArenaGuiCommand         = s"$ArenaCommand.gui"
   val ArenaAddCommand         = s"$ArenaCommand.add"
   val ArenaRemoveCommand      = s"$ArenaCommand.remove"
   val ArenaAddSpawnCommand    = s"$ArenaCommand.addspawn"

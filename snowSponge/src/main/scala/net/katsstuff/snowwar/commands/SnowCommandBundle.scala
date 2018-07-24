@@ -17,13 +17,17 @@ import net.katsstuff.minejson.text._
 import net.katsstuff.scammander.sponge.components.{CommandInfo, SpongeCommandWrapper}
 import net.katsstuff.scammander.{CommandFailure, ScammanderHelper}
 import net.katsstuff.snowwar.Perms
+import net.katsstuff.snowwar.algebras.{Arenas, Teams}
 
-abstract class SnowCommandBundle[G[_], F[_], Page: Monoid](GtoF: G ~> F)(
+abstract class SnowCommandBundle[G[_], F[_], Page](GtoF: G ~> F)(
     implicit pagination: Pagination.Aux[G, CommandSource, Page],
     R: Resource[G],
     localized: Localized[G, CommandSource],
-    T: TextConversion[F],
-    TG: TextConversion[G],
+    TC: TextConversion[F],
+    TCG: TextConversion[G],
+    val T: Teams[G],
+    val A: Arenas[G],
+    val pageMonoid: Monoid[Page],
     val G: Sync[G],
     val F: MonadError[F, NonEmptyList[CommandFailure]] //TODO: Make a val in KatLib
 ) extends SpongeKatLibCommands[G, F, Page](GtoF) {
@@ -32,7 +36,7 @@ abstract class SnowCommandBundle[G[_], F[_], Page: Monoid](GtoF: G ~> F)(
   private val modCommands  = new ModCommands(this)
 
   def localizedCmdInfo(key: String): CommandSource => F[Option[SpongeText]] = GtoFLocalized(_) { implicit locale =>
-    R.getText(key).flatMap(TG.ourToSponge).map(Some.apply)
+    R.getText(key).flatMap(TCG.ourToSponge).map(Some.apply)
   }
 
   def localizedHelp(key: String): CommandSource => F[Option[SpongeText]] = localizedCmdInfo(key)
@@ -44,6 +48,15 @@ abstract class SnowCommandBundle[G[_], F[_], Page: Monoid](GtoF: G ~> F)(
     localizedHelp(s"snowwar.command.$commandName.help"),
     localizedDescription(s"snowwar.command.$commandName.description")
   )
+
+  def button(content: Text, command: String): Text =
+    content.onClick(ClickAction.RunCommand(command)).hoverText(HoverText.ShowText(t"/$command"))
+
+  def shiftButton(content: Text, command: String): Text =
+    content.onClick(ClickAction.SuggestCommand(command))
+
+  def actionButton(content: Text)(action: CommandSource => Unit): Text =
+    ???
 
   lazy val snowHelpCommand: ChildCommand =
     helpCommand(t"SnowWar help", Set(ChildCommand(Set("snowwar"), userCommand)))
@@ -60,8 +73,8 @@ abstract class SnowCommandBundle[G[_], F[_], Page: Monoid](GtoF: G ~> F)(
   )
 
   lazy val userCommand: SpongeCommandWrapper[F] = Command
-    .withSenderAndChildren[Player, NotUsed](rootChildCommands) { (player, _, _) =>
-      snowHelpCommand.command.command.runRaw(player, (), Nil)
+    .withSenderAndChildren[Player, NotUsed](rootChildCommands) { (player, extra, _) =>
+      snowHelpCommand.command.command.runRaw(player, extra, Nil)
     }
     .toSponge(mkCommandInfo(Permission.none, "snowwar"))
 
@@ -71,8 +84,8 @@ abstract class SnowCommandBundle[G[_], F[_], Page: Monoid](GtoF: G ~> F)(
   )
 
   lazy val modCommand: ChildCommand = Command
-    .withSenderAndChildren[Player, NotUsed](modChildCommands) { (player, _, _) =>
-      snowHelpCommand.command.command.runRaw(player, (), ScammanderHelper.stringToRawArgsQuoted("mod"))
+    .withSenderAndChildren[Player, NotUsed](modChildCommands) { (player, extra, _) =>
+      snowHelpCommand.command.command.runRaw(player, extra, ScammanderHelper.stringToRawArgs("mod"))
     }
     .toChild(Seq("mod"), mkCommandInfo(Permission(Perms.ModCommandTop), "mod"))
 }

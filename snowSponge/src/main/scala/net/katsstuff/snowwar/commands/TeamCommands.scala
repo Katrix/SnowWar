@@ -25,7 +25,7 @@ class TeamCommands[G[_], F[_], Page](val bundle: SnowCommandBundle[G, F, Page]) 
         ???
       }
     }
-    .toChild(Seq("addteam"), mkCommandInfo(Permission(Perms.TeamToolboxCommand), "mod.arenas.addteam"))
+    .toChild(Seq("toolbox"), mkCommandInfo(Permission(Perms.TeamToolboxCommand), "mod.arenas.toolbox"))
 
   lazy val saveCommand: ChildCommand = Command
     .withSender[Player, Named[W.`"team"`.T, String]] { case (src, _, Named(name)) =>

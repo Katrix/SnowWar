@@ -12,14 +12,6 @@ import net.katsstuff.snowwar.objects.{Arena, Team}
 class ArenaCommands[G[_], F[_], Page](val bundle: SnowCommandBundle[G, F, Page]) {
   import bundle._
 
-  lazy val guiCommand: ChildCommand = Command
-    .withSender[Player, NotUsed] { (player, _, _) =>
-      GtoFLocalized(player) { implicit locale =>
-        G.pure(Command.success())
-      }
-    }
-    .toChild(Seq("gui"), mkCommandInfo(Permission(Perms.ArenaGuiCommand), "mod.arenas.gui"))
-
   lazy val addCommand: ChildCommand = Command
     .withSender[Player, Named[W.`"name"`.T, String]] {
       case (player, _, Named(name)) =>
@@ -45,7 +37,7 @@ class ArenaCommands[G[_], F[_], Page](val bundle: SnowCommandBundle[G, F, Page])
           ???
         }
     }
-    .toChild(Seq("saveteam"), mkCommandInfo(Permission(Perms.ArenaAddSpawnCommand), "mod.arenas.addSpawn"))
+    .toChild(Seq("addspawn"), mkCommandInfo(Permission(Perms.ArenaAddSpawnCommand), "mod.arenas.addSpawn"))
 
   lazy val removeSpawnCommand: ChildCommand = Command
     .withSender[Player, Arena :: Named[W.`"spawnIndex"`.T, Int] :: HNil] {
@@ -54,6 +46,6 @@ class ArenaCommands[G[_], F[_], Page](val bundle: SnowCommandBundle[G, F, Page])
           ???
         }
     }
-    .toChild(Seq("removeteam"), mkCommandInfo(Permission(Perms.ArenaRemoveSpawnCommand), "mod.arenas.removeSpawn"))
+    .toChild(Seq("removespawn"), mkCommandInfo(Permission(Perms.ArenaRemoveSpawnCommand), "mod.arenas.removeSpawn"))
 
 }
